@@ -16,11 +16,7 @@ class MainWindow(tk.Frame):
 		self.layout_file = None
 		self.parseCmdArgs()
 		if self.layout_file is None:
-			self.win_width = 800
-			self.win_height = 600
-			self.led_rects = []
-			self.canvas = None
-			self.led_widgets = []
+			self.resetVars()
 			self.initUI()
 		else:
 			self.loadConfig()
@@ -32,12 +28,16 @@ class MainWindow(tk.Frame):
 		for idx in range(len(self.led_widgets)):
 			self.setLedColor(idx,100,200,100)
 
-	def loadConfig(self):
+	def resetVars(self):
 		self.win_width = 800
 		self.win_height = 600
+		self.led_rects = []
 		self.canvas = None
 		self.led_widgets = []
 		self.led_rects = []
+
+	def loadConfig(self):
+		self.resetVars()
 		self.readConfig(self.layout_file ,self.layout_type)
 		if self.canvas is not None:
 			self.canvas.destroy()
@@ -71,9 +71,9 @@ class MainWindow(tk.Frame):
 		self.parent.title("HyperSim");
 		tk.Frame.__init__(self, self.parent)
 		self.pack()
-		
+
 		menubar = tk.Menu(self)
-		
+
 		filemenu = tk.Menu(menubar, tearoff=0)
 		filemenu.add_command(label="Open Hyperion", command=self.menu_open_hyperion)
 		filemenu.add_command(label="Open OPC xy",      command=self.menu_open_opc_xy)
@@ -90,7 +90,7 @@ class MainWindow(tk.Frame):
 		self.canvas.pack()
 		self.canvas.create_rectangle(0, 0, self.win_width, self.win_height, fill="darkgray", outline="darkgray")
 
-		for r in self.led_rects:
+		for idx, r in enumerate(self.led_rects):
 			self.led_widgets.append(self.canvas.create_rectangle(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
 			if self.show_numbers:
 				self.canvas.create_text( int((r[0]+r[2])/2), int((r[1]+r[3])/2), anchor=tk.W, text=str(idx))
@@ -106,7 +106,7 @@ class MainWindow(tk.Frame):
 
 		args = parser.parse_args()
 		self.show_numbers = args.show_numbers
-		
+
 		if args.hyperion is not None:
 			self.layout_file = args.hyperion
 			self.layout_type = "hyperion"
@@ -153,9 +153,9 @@ class MainWindow(tk.Frame):
 
 			for led in hyperion_cfg['leds']:
 				self.led_rects.append([
-					int(led['hscan']['minimum'] * self.win_width), 
+					int(led['hscan']['minimum'] * self.win_width),
 					int(led['vscan']['minimum'] * self.win_height),
-					int(led['hscan']['maximum'] * self.win_width), 
+					int(led['hscan']['maximum'] * self.win_width),
 					int(led['vscan']['maximum'] * self.win_height)
 				])
 
@@ -177,7 +177,7 @@ class MainWindow(tk.Frame):
 
 			# calc ratio
 			#print( abs(b_values_max - b_values_min) / abs(a_values_max - a_values_min),  a_values_max - a_values_min )
-			
+
 			self.win_height = 800
 			while True:
 				self.win_height = self.win_width * (abs(b_values_max - b_values_min) / abs(a_values_max - a_values_min))
@@ -188,12 +188,12 @@ class MainWindow(tk.Frame):
 
 			norm_a = lambda x: (x - a_values_min) / (a_values_max - a_values_min);
 			norm_b = lambda x: (x - b_values_min) / (b_values_max - b_values_min);
-			
+
 			for idx in range(len(a_values)):
 				self.led_rects.append([
-					int(norm_a(a_values[idx]) * (self.win_width-30)+5), 
+					int(norm_a(a_values[idx]) * (self.win_width-30)+5),
 					int(norm_a(b_values[idx]) * (self.win_height-30)+5),
-					int(norm_a(a_values[idx]) * (self.win_width-30)+20), 
+					int(norm_a(a_values[idx]) * (self.win_width-30)+20),
 					int(norm_a(b_values[idx]) * (self.win_height-30)+20)
 				])
 
@@ -215,9 +215,8 @@ class MainWindow(tk.Frame):
 	def updateLeds(self, led_data):
 		for idx in range(len(led_data)):
 			self.setLedColor(idx,led_data[idx][0],led_data[idx][1],led_data[idx][2])
-		
+
 	# ------------------------------------------------------
 	def setLedColor(self,led_idx,r,g,b):
 		if led_idx < len(self.led_widgets):
 			self.canvas.itemconfigure(self.led_widgets[led_idx], fill="#%02x%02x%02x" % (r, g, b) )
-
