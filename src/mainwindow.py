@@ -1,5 +1,11 @@
 import json, re, time, argparse, signal, os
 import tkinter as tk
+
+import tkinter.messagebox as tkMessageBox
+import tkinter.simpledialog as tkSimpleDialog
+import tkinter.filedialog as tkFileDialog
+import tkinter.simpledialog as tkSimpleDialog
+
 from opcserver import *
 
 class MainWindow(tk.Frame):
@@ -7,26 +13,80 @@ class MainWindow(tk.Frame):
 	# ------------------------------------------------------
 	def __init__(self, parent=None):
 		self.parent = parent
-		self.win_width = 800
-		self.win_height = 600
-		self.led_widgets = []
-		self.led_rects = []
+		self.layout_file = None
 		self.parseCmdArgs()
+		if self.layout_file is None:
+			self.win_width = 800
+			self.win_height = 600
+			self.led_rects = []
+			self.canvas = None
+			self.led_widgets = []
+			self.initUI()
+		else:
+			self.loadConfig()
 
-		tk.Frame.__init__(self, parent)
-		self.pack()
-		self.readConfig(self.layout_file ,self.layout_type)
 		self.opcServer = OPCserver(self.updateLeds)
 		self.opcServer.start()
 
-		self.initUI()
 
 		for idx in range(len(self.led_widgets)):
 			self.setLedColor(idx,100,200,100)
 
+	def loadConfig(self):
+		self.win_width = 800
+		self.win_height = 600
+		self.canvas = None
+		self.led_widgets = []
+		self.led_rects = []
+		self.readConfig(self.layout_file ,self.layout_type)
+		if self.canvas is not None:
+			self.canvas.destroy()
+		self.initUI()
+
+	def menu_open_hyperion(self):
+		filename = tkFileDialog.askopenfilename()
+		if filename:
+			self.layout_file = filename
+			self.layout_type = "hyperion"
+			self.loadConfig()
+
+	def menu_open_opc(self,layout_type):
+		filename = tkFileDialog.askopenfilename()
+		if filename:
+			self.layout_file = filename
+			self.layout_type = layout_type
+			self.loadConfig()
+
+	def menu_open_opc_xy(self):
+		self.menu_open_opc("opc_xy")
+
+	def menu_open_opc_xz(self):
+		self.menu_open_opc("opc_xz")
+
+	def menu_open_opc_yz(self):
+		self.menu_open_opc("opc_yz")
+
 	# ------------------------------------------------------
 	def initUI(self):
-		self.canvas = tk.Canvas(self, width=self.win_width, height=self.win_height)
+		self.parent.title("HyperSim");
+		tk.Frame.__init__(self, self.parent)
+		self.pack()
+		
+		menubar = tk.Menu(self)
+		
+		filemenu = tk.Menu(menubar, tearoff=0)
+		filemenu.add_command(label="Open Hyperion", command=self.menu_open_hyperion)
+		filemenu.add_command(label="Open OPC xy",      command=self.menu_open_opc_xy)
+		filemenu.add_command(label="Open OPC xz",      command=self.menu_open_opc_xz)
+		filemenu.add_command(label="Open OPC yz",      command=self.menu_open_opc_yz)
+		filemenu.add_separator()
+		filemenu.add_command(label="Quit",          command=self.on_close)
+		menubar.add_cascade(label="File", menu=filemenu)
+		self.parent.config(menu=menubar)
+
+		frameC = tk.Frame(master=self)
+		frameC.pack()
+		self.canvas = tk.Canvas(frameC, width=self.win_width, height=self.win_height)
 		self.canvas.pack()
 		self.canvas.create_rectangle(0, 0, self.win_width, self.win_height, fill="darkgray", outline="darkgray")
 
@@ -46,9 +106,6 @@ class MainWindow(tk.Frame):
 
 		args = parser.parse_args()
 		self.show_numbers = args.show_numbers
-		if args.hyperion is None and args.opc_xy is None  and args.opc_yz is None and args.opc_xz is None:
-			print("missing configuration file")
-			exit(1)
 		
 		if args.hyperion is not None:
 			self.layout_file = args.hyperion
