@@ -1,5 +1,5 @@
 # HyperSim
-LED-Simulator for hyperion and open pixel protocol.
+LED-Simulator for hyperion and open pixel control.
 
 This is a python/TK app that can load a [hyperion](https://github.com/tvdzwan/hyperion) config file
 or [open-pixel-control/OPC](http://openpixelcontrol.org/) layout file and visualize the LED configuration.
@@ -18,7 +18,7 @@ hyperion.config.json:
 ```
 
 
-usage:
+command line usage:
 ```
 usage: hypersim [-h] [--num] [--hyperion HYPERION] [--opc_xy OPC_XY] [--opc_yz OPC_YZ] [--opc_xz OPC_XZ]
 
@@ -32,6 +32,8 @@ optional arguments:
   --opc_yz OPC_YZ      opc config yz components
   --opc_xz OPC_XZ      opc config xz components
 ```
+
+Configuration file can be opened via file menu. LED numbers can be enabled on command line only (ATM).
 
 screenshot:
 
