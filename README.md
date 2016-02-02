@@ -6,6 +6,7 @@ or [open-pixel-control/OPC](http://openpixelcontrol.org/) layout file and visual
 In addition it opens a OPC server where you can feed the virtual LEDs with real color from hyperion/opc client.
 
 Hyperion users have to use the fadecandy driver. (default port is 7890)
+
 hyperion.config.json:
 ```
 "device" :
@@ -32,5 +33,6 @@ optional arguments:
   --opc_xz OPC_XZ      opc config xz components
 ```
 
-a screenshot:
+screenshot:
+
 ![HyperSim matrix demo](doc/images/demo_matrix.png)
