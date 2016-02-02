@@ -10,15 +10,17 @@ class MainWindow(tk.Frame):
 		self.win_width = 800
 		self.win_height = 600
 		self.led_widgets = []
+		self.led_rects = []
 		self.parseCmdArgs()
 
 		tk.Frame.__init__(self, parent)
 		self.pack()
-		self.initUI()
 		self.readConfig(self.layout_file ,self.layout_type)
 		self.opcServer = OPCserver(self.updateLeds)
 		self.opcServer.start()
-		
+
+		self.initUI()
+
 		for idx in range(len(self.led_widgets)):
 			self.setLedColor(idx,100,200,100)
 
@@ -27,6 +29,11 @@ class MainWindow(tk.Frame):
 		self.canvas = tk.Canvas(self, width=self.win_width, height=self.win_height)
 		self.canvas.pack()
 		self.canvas.create_rectangle(0, 0, self.win_width, self.win_height, fill="darkgray", outline="darkgray")
+
+		for r in self.led_rects:
+			self.led_widgets.append(self.canvas.create_rectangle(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
+			if self.show_numbers:
+				self.canvas.create_text( int((r[0]+r[2])/2), int((r[1]+r[3])/2), anchor=tk.W, text=str(idx))
 
 	# ------------------------------------------------------
 	def parseCmdArgs(self):
@@ -86,18 +93,14 @@ class MainWindow(tk.Frame):
 			for line in cfg_data.splitlines():
 				data += line.split('//')[0]
 			hyperion_cfg = json.loads(data)
-			idx = 0
+
 			for led in hyperion_cfg['leds']:
-				c = [
+				self.led_rects.append([
 					int(led['hscan']['minimum'] * self.win_width), 
 					int(led['vscan']['minimum'] * self.win_height),
 					int(led['hscan']['maximum'] * self.win_width), 
 					int(led['vscan']['maximum'] * self.win_height)
-				]
-				self.led_widgets.append(self.canvas.create_rectangle(c[0], c[1], c[2], c[3], fill="black", outline="darkgray"))
-				if self.show_numbers:
-					self.canvas.create_text( int((c[0]+c[2])/2), int((c[1]+c[3])/2), anchor=tk.W, text=str(idx))
-				idx += 1
+				])
 
 	# ------------------------------------------------------
 	def readConfig_opc(self,layout_file,a_val_idx,b_val_idx):
@@ -115,19 +118,27 @@ class MainWindow(tk.Frame):
 			b_values_max = max(b_values)
 			b_values_min = min(b_values)
 
+			# calc ratio
+			#print( abs(b_values_max - b_values_min) / abs(a_values_max - a_values_min),  a_values_max - a_values_min )
+			
+			self.win_height = 800
+			while True:
+				self.win_height = self.win_width * (abs(b_values_max - b_values_min) / abs(a_values_max - a_values_min))
+				if self.win_height < 800:
+					break
+				else:
+					self.win_width -= 10
+
 			norm_a = lambda x: (x - a_values_min) / (a_values_max - a_values_min);
 			norm_b = lambda x: (x - b_values_min) / (b_values_max - b_values_min);
-
+			
 			for idx in range(len(a_values)):
-				c = [
-					int(norm_a(a_values[idx]) * (self.win_width-20)-10), 
-					int(norm_a(b_values[idx]) * (self.win_height-20)-10),
-					int(norm_a(a_values[idx]) * (self.win_width-20)+10), 
-					int(norm_a(b_values[idx]) * (self.win_height-20)+10)
-				]
-				self.led_widgets.append(self.canvas.create_rectangle(c[0], c[1], c[2], c[3], fill="black", outline="darkgray"))
-				if self.show_numbers:
-					self.canvas.create_text( int((c[0]+c[2])/2), int((c[1]+c[3])/2), anchor=tk.W, text=str(idx))
+				self.led_rects.append([
+					int(norm_a(a_values[idx]) * (self.win_width-30)+5), 
+					int(norm_a(b_values[idx]) * (self.win_height-30)+5),
+					int(norm_a(a_values[idx]) * (self.win_width-30)+20), 
+					int(norm_a(b_values[idx]) * (self.win_height-30)+20)
+				])
 
 	# ------------------------------------------------------
 	def readConfig(self,layout_file, layout_type="hyperion"):

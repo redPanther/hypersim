@@ -47,6 +47,6 @@ class OPCserver(Thread):
 	def stop(self):
 		print("stop")
 		self.running = False
-		#self.s.close()
+		self.s.close()
 		exit(0)
 		
