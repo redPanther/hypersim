@@ -1,52 +1,40 @@
-import socket
+import socketserver
 from threading import Thread
 
 class OPCserver(Thread):
+	update_func = None
+	running = False
 
-	def __init__(self, func=None):
+	class OPCHandler(socketserver.BaseRequestHandler):
+		def handle(self):
+			while OPCserver.running:
+				data = self.request.recv(4).strip()
+				if not data or not OPCserver.running: break
+				channel, cmd, hi, lo = data[:4]
+				length = hi*256 + lo
+				data = self.request.recv(length)
+				if not data or not OPCserver.running: break
+				self.led_data = []
+				for n in range(0,len(data),3):
+					self.led_data.append( (data[n], data[n+1], data[n+2]) )
+				if OPCserver.update_func is not None:
+					OPCserver.update_func(self.led_data)
+
+
+	def __init__(self, func=None, HOST='0.0.0.0', PORT=7890):
 		Thread.__init__(self)
-		self.running = False
-		self.update_func = func
-
-		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-		self.s.bind(('0.0.0.0', 7890))
-		self.s.listen(1)
-		self.led_data = []
+		OPCserver.update_func = func
+		self.server = socketserver.TCPServer((HOST, PORT), OPCserver.OPCHandler)
+		self.server.allow_reuse_address = True
 
 	def __del__(self):
 		self.stop()
 
 	def run(self):
-		self.running = True
-		print("start")
-		while self.running:
-				conn, addr = self.s.accept()
-				idx = 0
-				channel = 0
-				cmd     = 0
-				length  = 0
-				led_idx = 0
-				print("reset")
-				while self.running:
-					data = conn.recv(4)
-					if not data: break
-					channel, cmd, hi, lo = data[:4]
-					length = hi*256 + lo
-
-					data = conn.recv(length)
-					if not data: break
-					self.led_data = []
-					for n in range(0,len(data),3):
-						self.led_data.append( (data[n], data[n+1], data[n+2]) )
-					if self.update_func is not None:
-						self.update_func(self.led_data)
-				conn.close()
+		OPCserver.running = True
+		self.server.serve_forever()
 
 	def stop(self):
-		print("stop")
-		self.running = False
-		self.s.close()
-		exit(0)
-		
+		OPCserver.running = False
+		self.server.shutdown()
+		self.server.server_close()
