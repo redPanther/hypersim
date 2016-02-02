@@ -80,7 +80,7 @@ class Application(tk.Frame):
 		self.canvas = tk.Canvas(self, width=self.win_width, height=self.win_height)
 		self.canvas.pack()
 		self.canvas.create_rectangle(0, 0, self.win_width, self.win_height, fill="darkgray", outline="darkgray")
-		
+
 	# ------------------------------------------------------
 	def parseCmdArgs(self):
 		parser = argparse.ArgumentParser(description='Simulator for hyperion.', prog='hypersim')
@@ -130,7 +130,7 @@ class Application(tk.Frame):
 		#self.opcServer.join()
 		self.parent.destroy()
 		exit(0)
-	
+
 	# ------------------------------------------------------
 	def readConfig_hyperion(self,layout_file):
 		with open(layout_file) as data_file:
@@ -195,8 +195,7 @@ class Application(tk.Frame):
 			else:
 				print("unknown type of config file")
 				exit(1)
-				
-				
+
 	# ------------------------------------------------------
 	def updateLeds(self, led_data):
 		for idx in range(len(led_data)):
@@ -209,9 +208,9 @@ class Application(tk.Frame):
 
 # ==========================================
 
-def signal_handler(signum, frame):                                                                                                                           
-	exit(0)                                                                                                                                                  
- 
+def signal_handler(signum, frame):
+	exit(0)
+
 
 signal.signal(signal.SIGINT, signal_handler)
 root = tk.Tk()
