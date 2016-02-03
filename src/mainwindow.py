@@ -200,7 +200,7 @@ class MainWindow(tk.Frame):
 			if layout_type == "hyperion":
 				self.readConfig_hyperion(layout_file)
 			elif layout_type in opc_map:
-				self.readConfig_opc(layout_file, opc_map[layout_type][0], opc_map[layout_type][0])
+				self.readConfig_opc(layout_file, opc_map[layout_type][0], opc_map[layout_type][1])
 			else:
 				print("unknown type of config file")
 				exit(1)
