@@ -20,17 +20,18 @@ hyperion.config.json:
 
 command line usage:
 ```
-usage: hypersim [-h] [--num] [--hyperion HYPERION] [--opc_xy OPC_XY] [--opc_yz OPC_YZ] [--opc_xz OPC_XZ]
+usage: hypersim [-h] [-n]
+                [--hyperion <file> | --opc_xy <file> | --opc_yz <file> | --opc_xz <file>]
 
 Simulator for hyperion.
 
 optional arguments:
-  -h, --help           show this help message and exit
-  --num                show led IDs
-  --hyperion HYPERION  hyperion config
-  --opc_xy OPC_XY      opc config xy components
-  --opc_yz OPC_YZ      opc config yz components
-  --opc_xz OPC_XZ      opc config xz components
+  -h, --help         show this help message and exit
+  -n, --num          show led IDs
+  --hyperion <file>  hyperion config
+  --opc_xy <file>    opc config xy components
+  --opc_yz <file>    opc config yz components
+  --opc_xz <file>    opc config xz components
 ```
 
 Configuration file can be opened via file menu. LED numbers can be enabled on command line only (ATM).

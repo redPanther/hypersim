@@ -29,6 +29,7 @@ class MainWindow(tk.Frame):
 		for idx in range(len(self.led_widgets)):
 			self.setLedColor(idx,100,200,100)
 
+	# ------------------------------------------------------
 	def resetVars(self):
 		self.win_width = 800
 		self.win_height = 600
@@ -37,6 +38,7 @@ class MainWindow(tk.Frame):
 		self.led_widgets = []
 		self.led_rects = []
 
+	# ------------------------------------------------------
 	def loadConfig(self):
 		self.resetVars()
 		self.readConfig(self.layout_file ,self.layout_type)
@@ -44,6 +46,7 @@ class MainWindow(tk.Frame):
 			self.canvas.destroy()
 		self.initUI()
 
+	# ------------------------------------------------------
 	def menu_open_hyperion(self):
 		filename = tkFileDialog.askopenfilename()
 		if filename:
@@ -51,6 +54,7 @@ class MainWindow(tk.Frame):
 			self.layout_type = "hyperion"
 			self.loadConfig()
 
+	# ------------------------------------------------------
 	def menu_open_opc(self,layout_type):
 		filename = tkFileDialog.askopenfilename()
 		if filename:
@@ -58,12 +62,15 @@ class MainWindow(tk.Frame):
 			self.layout_type = layout_type
 			self.loadConfig()
 
+	# ------------------------------------------------------
 	def menu_open_opc_xy(self):
 		self.menu_open_opc("opc_xy")
 
+	# ------------------------------------------------------
 	def menu_open_opc_xz(self):
 		self.menu_open_opc("opc_xz")
 
+	# ------------------------------------------------------
 	def menu_open_opc_yz(self):
 		self.menu_open_opc("opc_yz")
 
@@ -71,15 +78,15 @@ class MainWindow(tk.Frame):
 	def initUI(self):
 		self.parent.title("HyperSim");
 		tk.Frame.__init__(self, self.parent)
-		self.pack()
+		self.pack(fill=tk.BOTH, expand=1)
 
 		menubar = tk.Menu(self)
 
 		filemenu = tk.Menu(menubar, tearoff=0)
 		filemenu.add_command(label="Open Hyperion", command=self.menu_open_hyperion)
-		filemenu.add_command(label="Open OPC xy",      command=self.menu_open_opc_xy)
-		filemenu.add_command(label="Open OPC xz",      command=self.menu_open_opc_xz)
-		filemenu.add_command(label="Open OPC yz",      command=self.menu_open_opc_yz)
+		filemenu.add_command(label="Open OPC xy",   command=self.menu_open_opc_xy)
+		filemenu.add_command(label="Open OPC xz",   command=self.menu_open_opc_xz)
+		filemenu.add_command(label="Open OPC yz",   command=self.menu_open_opc_yz)
 		filemenu.add_separator()
 		filemenu.add_command(label="Quit",          command=self.on_close)
 		menubar.add_cascade(label="File", menu=filemenu)
@@ -96,15 +103,17 @@ class MainWindow(tk.Frame):
 			if self.show_numbers:
 				self.canvas.create_text( int((r[0]+r[2])/2), int((r[1]+r[3])/2), anchor=tk.W, text=str(idx))
 
+
+
 	# ------------------------------------------------------
 	def parseCmdArgs(self):
 		parser = argparse.ArgumentParser(description='Simulator for hyperion.', prog='hypersim')
 		group = parser.add_mutually_exclusive_group()
 		parser.add_argument('-n','--num', dest='show_numbers', action='store_true', help='show led IDs')
-		group.add_argument('--hyperion', dest='hyperion', metavar="<file>", default=None, help='hyperion config')
-		group.add_argument('--opc_xy', default=None, metavar="<file>", help='opc config xy components')
-		group.add_argument('--opc_yz', default=None, metavar="<file>", help='opc config yz components')
-		group.add_argument('--opc_xz', default=None, metavar="<file>", help='opc config xz components')
+		group.add_argument('--hyperion', default=None, metavar="<file>", help='hyperion config')
+		group.add_argument('--opc_xy'  , default=None, metavar="<file>", help='opc config xy components')
+		group.add_argument('--opc_yz'  , default=None, metavar="<file>", help='opc config yz components')
+		group.add_argument('--opc_xz'  , default=None, metavar="<file>", help='opc config xz components')
 
 		args = parser.parse_args()
 		self.show_numbers = args.show_numbers
@@ -154,7 +163,7 @@ class MainWindow(tk.Frame):
 		b_values = []
 		with open(layout_file) as data_file:
 			opc_cfg = json.load(data_file)
-			#print(opc_cfg)
+
 			for d in opc_cfg:
 				a_values.append(d['point'][a_val_idx])
 				b_values.append(d['point'][b_val_idx])
@@ -165,8 +174,6 @@ class MainWindow(tk.Frame):
 			b_values_min = min(b_values)
 
 			# calc ratio
-			#print( abs(b_values_max - b_values_min) / abs(a_values_max - a_values_min),  a_values_max - a_values_min )
-
 			self.win_height = 800
 			while True:
 				self.win_height = self.win_width * (abs(b_values_max - b_values_min) / abs(a_values_max - a_values_min))
@@ -180,9 +187,9 @@ class MainWindow(tk.Frame):
 
 			for idx in range(len(a_values)):
 				self.led_rects.append([
-					int(norm_a(a_values[idx]) * (self.win_width-30)+5),
-					int(norm_a(b_values[idx]) * (self.win_height-30)+5),
-					int(norm_a(a_values[idx]) * (self.win_width-30)+20),
+					int(norm_a(a_values[idx]) * (self.win_width -30)+ 5),
+					int(norm_a(b_values[idx]) * (self.win_height-30)+ 5),
+					int(norm_a(a_values[idx]) * (self.win_width -30)+20),
 					int(norm_a(b_values[idx]) * (self.win_height-30)+20)
 				])
 
@@ -202,7 +209,6 @@ class MainWindow(tk.Frame):
 	def updateLeds(self, led_data):
 		for idx in range(len(led_data)):
 			self.setLedColor(idx,led_data[idx][0],led_data[idx][1],led_data[idx][2])
-
 	# ------------------------------------------------------
 	def setLedColor(self,led_idx,r,g,b):
 		if led_idx < len(self.led_widgets):
