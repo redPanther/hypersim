@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json, re, time, argparse, signal, os
 import tkinter as tk
 
@@ -23,7 +25,6 @@ class MainWindow(tk.Frame):
 
 		self.opcServer = OPCserver(self.updateLeds)
 		self.opcServer.start()
-
 
 		for idx in range(len(self.led_widgets)):
 			self.setLedColor(idx,100,200,100)
@@ -98,49 +99,37 @@ class MainWindow(tk.Frame):
 	# ------------------------------------------------------
 	def parseCmdArgs(self):
 		parser = argparse.ArgumentParser(description='Simulator for hyperion.', prog='hypersim')
-		parser.add_argument('--num', dest='show_numbers', action='store_const', const=True, default=False, help='show led IDs')
-		parser.add_argument('--hyperion', default=None, help='hyperion config')
-		parser.add_argument('--opc_xy', default=None, help='opc config xy components')
-		parser.add_argument('--opc_yz', default=None, help='opc config yz components')
-		parser.add_argument('--opc_xz', default=None, help='opc config xz components')
+		group = parser.add_mutually_exclusive_group()
+		parser.add_argument('-n','--num', dest='show_numbers', action='store_true', help='show led IDs')
+		group.add_argument('--hyperion', dest='hyperion', metavar="<file>", default=None, help='hyperion config')
+		group.add_argument('--opc_xy', default=None, metavar="<file>", help='opc config xy components')
+		group.add_argument('--opc_yz', default=None, metavar="<file>", help='opc config yz components')
+		group.add_argument('--opc_xz', default=None, metavar="<file>", help='opc config xz components')
 
 		args = parser.parse_args()
 		self.show_numbers = args.show_numbers
 
 		if args.hyperion is not None:
-			self.layout_file = args.hyperion
+			self.layout_file = os.path.realpath( args.hyperion )
 			self.layout_type = "hyperion"
 			if not os.path.exists(self.layout_file):
 				print("could not read ", self.layout_file)
 				exit(1)
 
-		elif args.opc_xy is not None:
-			self.layout_file = args.opc_xy
-			self.layout_type = "opc_xy"
-			if not os.path.exists(self.layout_file):
-				print("could not read ", self.layout_file)
-				exit(1)
-
-		elif args.opc_xz is not None:
-			self.layout_file = args.opc_xz
-			self.layout_type = "opc_xz"
-			if not os.path.exists(self.layout_file):
-				print("could not read ", self.layout_file)
-				exit(1)
-
-		elif args.opc_yz is not None:
-			self.layout_file = args.opc_yz
-			self.layout_type = "opc_yz"
-			if not os.path.exists(self.layout_file):
-				print("could not read ", self.layout_file)
-				exit(1)
+		for k in args.__dict__:
+			if k in ['opc_xy','opc_yz','opc_xz'] and args.__dict__[k] is not None:
+				self.layout_file = os.path.realpath( args.__dict__[k] )
+				self.layout_type = k
+				if not os.path.exists(self.layout_file):
+					print("could not read ", self.layout_file)
+					exit(1)
+				break
 
 	# ------------------------------------------------------
 	def on_close(self):
 		self.opcServer.stop()
-		#self.opcServer.join()
+		self.opcServer.join()
 		self.parent.destroy()
-		exit(0)
 
 	# ------------------------------------------------------
 	def readConfig_hyperion(self,layout_file):
@@ -199,14 +188,12 @@ class MainWindow(tk.Frame):
 
 	# ------------------------------------------------------
 	def readConfig(self,layout_file, layout_type="hyperion"):
+			opc_map = {'opc_xy' : (0,1),'opc_xz' : (0,2),'opc_yz' : (1,2) }
+			
 			if layout_type == "hyperion":
 				self.readConfig_hyperion(layout_file)
-			elif layout_type == "opc_xy":
-				self.readConfig_opc(layout_file,0,1)
-			elif layout_type == "opc_yz":
-				self.readConfig_opc(layout_file,1,2)
-			elif layout_type == "opc_xz":
-				self.readConfig_opc(layout_file,0,2)
+			elif layout_type in opc_map:
+				self.readConfig_opc(layout_file, opc_map[layout_type][0], opc_map[layout_type][0])
 			else:
 				print("unknown type of config file")
 				exit(1)
