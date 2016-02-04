@@ -5,7 +5,17 @@ This is a python/TK app that can load a [hyperion](https://github.com/tvdzwan/hy
 or [open-pixel-control/OPC](http://openpixelcontrol.org/) layout file and visualize the LED configuration.
 In addition it opens a OPC server where you can feed the virtual LEDs with real color from hyperion/opc client.
 
-Hyperion users have to use the fadecandy driver. (default port is 7890)
+## Requirements
+- python 3
+- Tkinter support (windows: it comes with standard py3 install. Linux: there are packages)
+- source of OPC messages like OLA, Hyperion, OPC-Clients
+- a json config file with your led layout (e.g. hyperion config, OPC layouts)
+- Hyperion: Ensure you have the latest hyperiond
+
+## Usage
+
+### client: Hyperion
+use the fadecandy driver. (default port is 7890)
 
 hyperion.config.json:
 ```
@@ -16,9 +26,12 @@ hyperion.config.json:
   "output"     : "127.0.0.1"
 },
 ```
+### client: generic OPC
 
+configure your client to your HyperSim IP-address and port 7890
+use the same LED-layout as the server.
 
-command line usage:
+### server: HyperSim
 ```
 usage: hypersim [-h] [-n]
                 [--hyperion <file> | --opc_xy <file> | --opc_yz <file> | --opc_xz <file>]
@@ -36,6 +49,7 @@ optional arguments:
 
 Configuration file can be opened via file menu. LED numbers can be enabled on command line only (ATM).
 
-screenshot:
+
+## Screenshot
 
 ![HyperSim matrix demo](doc/images/demo_matrix.png)

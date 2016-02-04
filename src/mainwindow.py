@@ -168,10 +168,20 @@ class MainWindow(tk.Frame):
 				a_values.append(d['point'][a_val_idx])
 				b_values.append(d['point'][b_val_idx])
 
+			if len(a_values) != len(b_values) or len(a_values) == 0:
+				print("error while loading layout file")
+				return
+
 			a_values_max = max(a_values)
 			a_values_min = min(a_values)
 			b_values_max = max(b_values)
 			b_values_min = min(b_values)
+			
+			if a_values_max - a_values_min == 0:
+				a_values_max = a_values_min + 1
+
+			if b_values_max - b_values_min == 0:
+				b_values_max = b_values_min + 1
 
 			# calc ratio
 			self.win_height = 800
