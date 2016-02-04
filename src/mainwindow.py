@@ -16,6 +16,9 @@ class MainWindow(tk.Frame):
 	def __init__(self, parent=None):
 		self.parent = parent
 		self.layout_file = None
+		self.draw_type = 'rect'
+		self.led_size = 15
+		
 		self.parseCmdArgs()
 		if self.layout_file is None:
 			self.resetVars()
@@ -99,7 +102,11 @@ class MainWindow(tk.Frame):
 		self.canvas.create_rectangle(0, 0, self.win_width, self.win_height, fill="darkgray", outline="darkgray")
 
 		for idx, r in enumerate(self.led_rects):
-			self.led_widgets.append(self.canvas.create_rectangle(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
+			if self.draw_type == 'circle':
+				self.led_widgets.append(self.canvas.create_oval(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
+			else:
+				self.led_widgets.append(self.canvas.create_rectangle(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
+
 			if self.show_numbers:
 				self.canvas.create_text( int((r[0]+r[2])/2), int((r[1]+r[3])/2), anchor=tk.W, text=str(idx))
 
@@ -109,15 +116,23 @@ class MainWindow(tk.Frame):
 	def parseCmdArgs(self):
 		parser = argparse.ArgumentParser(description='Simulator for hyperion.', prog='hypersim')
 		group = parser.add_mutually_exclusive_group()
+		group2 = parser.add_mutually_exclusive_group()
+		
 		parser.add_argument('-n','--num', dest='show_numbers', action='store_true', help='show led IDs')
+		group2.add_argument('-c','--circle', dest='draw_type', action='store_const',const="circle",  help='draw led as circle/oval')
+		group2.add_argument('-r','--rect', dest='draw_type',   action='store_const',const="rect", help='draw led as rect (default)')
 		group.add_argument('--hyperion', default=None, metavar="<file>", help='hyperion config')
 		group.add_argument('--opc_xy'  , default=None, metavar="<file>", help='opc config xy components')
 		group.add_argument('--opc_yz'  , default=None, metavar="<file>", help='opc config yz components')
 		group.add_argument('--opc_xz'  , default=None, metavar="<file>", help='opc config xz components')
+		parser.add_argument('--led_size', default=15, metavar="<pixel>", type=int, help='pixel size of a single led (default: 15)')
 
 		args = parser.parse_args()
+		
 		self.show_numbers = args.show_numbers
-
+		self.draw_type = 'rect' if args.draw_type is None else args.draw_type
+		self.led_size = args.led_size
+		
 		if args.hyperion is not None:
 			self.layout_file = os.path.realpath( args.hyperion )
 			self.layout_type = "hyperion"
@@ -195,12 +210,15 @@ class MainWindow(tk.Frame):
 			norm_a = lambda x: (x - a_values_min) / (a_values_max - a_values_min);
 			norm_b = lambda x: (x - b_values_min) / (b_values_max - b_values_min);
 
+			led_margin = 5
+			canvas_gap = led_margin*2 + self.led_size
+			
 			for idx in range(len(a_values)):
 				self.led_rects.append([
-					int(norm_a(a_values[idx]) * (self.win_width -30)+ 5),
-					int(norm_a(b_values[idx]) * (self.win_height-30)+ 5),
-					int(norm_a(a_values[idx]) * (self.win_width -30)+20),
-					int(norm_a(b_values[idx]) * (self.win_height-30)+20)
+					int(norm_a(a_values[idx]) * (self.win_width -canvas_gap)+ led_margin),
+					int(norm_a(b_values[idx]) * (self.win_height-canvas_gap)+ led_margin),
+					int(norm_a(a_values[idx]) * (self.win_width -canvas_gap)+ self.led_size+led_margin),
+					int(norm_a(b_values[idx]) * (self.win_height-canvas_gap)+ self.led_size+led_margin)
 				])
 
 	# ------------------------------------------------------

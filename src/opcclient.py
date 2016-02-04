@@ -35,7 +35,7 @@ Recommended use:
 
 """
 
-import socket
+import socket, time
 import struct
 import sys
 try:
@@ -46,7 +46,8 @@ except ImportError:
 
 class OPCclient(object):
 
-	def __init__(self, server_ip_port, long_connection=True, verbose=False):
+	# ----------------------------
+	def __init__(self, server_ip_port='localhost:7890', long_connection=True, verbose=False):
 		"""Create an OPC client object which sends pixels to an OPC server.
 
 		server_ip_port should be an ip:port or hostname:port as a single string.
@@ -82,10 +83,12 @@ class OPCclient(object):
 		self.manualLED = False
 		self.ledOnOff = False
 
+	# ----------------------------
 	def _debug(self, m):
 		if self.verbose:
 			print('	%s' % str(m))
 
+	# ----------------------------
 	def _ensure_connected(self):
 		"""Set up a connection if one doesn't already exist.
 
@@ -107,6 +110,7 @@ class OPCclient(object):
 			self._socket = None
 			return False
 
+	# ----------------------------
 	def disconnect(self):
 		"""Drop the connection to the server, if there is one."""
 		self._debug('disconnecting')
@@ -114,6 +118,7 @@ class OPCclient(object):
 			self._socket.close()
 		self._socket = None
 
+	# ----------------------------
 	def can_connect(self):
 		"""Try to connect to the server.
 
@@ -128,6 +133,7 @@ class OPCclient(object):
 			self.disconnect()
 		return success
 
+	# ----------------------------
 	def send(self, packet):
 		self._debug('put_pixels: sending pixels to server')
 		try:
@@ -141,6 +147,7 @@ class OPCclient(object):
 			self._debug('put_pixels: disconnecting')
 			self.disconnect()
 
+	# ----------------------------
 	def put_pixels(self, pixels, channel=0):
 		"""Send the list of pixel colors to the OPC server on the given channel.
 
@@ -186,13 +193,21 @@ class OPCclient(object):
 		return True
 
 
+	# ----------------------------
 	def sysEx(self, systemId, commandId, msg):
-		header = struct.pack(">BBHHH", 0, 0xFF, len(msg) + 8, systemId, commandId)
+		is_connected = self._ensure_connected()
+		if not is_connected:
+			return False
+
+		header = struct.pack(">BBHHH", 0, 0xFF, len(msg) + 4, systemId, commandId)
 		self.send(header + msg)
 
+	# ----------------------------
 	def setGlobalColorCorrection(self, gamma, r, g, b):
-		self.sysEx(1, 1, json.dumps({'gamma': gamma, 'whitepoint': [r, g, b]}))
+		data = json.dumps({'gamma': gamma, 'whitepoint': [r, g, b]})
+		self.sysEx(1, 1, data.encode('utf-8'))
 
+	# ----------------------------
 	def setFirmwareConfig(self,noDither=None,noInterp=None,manualLED=None,ledOnOff=None):
 		if noDither  is not None: self.noDither  = noDither
 		if noInterp  is not None: self.noInterp  = noInterp
@@ -202,5 +217,46 @@ class OPCclient(object):
 		data = chr(self.noDither | (self.noInterp << 1) | (self.manualLED << 2) | (self.ledOnOff << 3) )
 		self.sysEx(1, 2, struct.pack("s",data.encode('utf-8')))
 
+	# ----------------------------
 	def terminate(self):
 		pass
+
+
+if __name__ == "__main__":
+	import colorsys
+	opc = OPCclient()
+	
+	opc.setFirmwareConfig(noDither=False,noInterp=True,manualLED=True,ledOnOff=False)
+		
+	ledCount = 64
+	ledData = ledCount * [(0,0,0)]
+	saturation = 1.0
+	brightness = 1.0
+	rotationTime = 3
+	
+	increment = 3
+	sleepTime = rotationTime / ledCount
+	while sleepTime < 0.05:
+		increment *= 2
+		sleepTime *= 2
+	increment %= ledCount
+	increment = -increment
+	
+	for i in range(ledCount):
+		hue = float(i)/ledCount
+		rgb = colorsys.hsv_to_rgb(hue, saturation, brightness)
+		ledData[i] =(int(255*rgb[0]), int(255*rgb[1]), int(255*rgb[2]))
+
+	opc.put_pixels(ledData)
+	opc.setGlobalColorCorrection(2.5, 10, 10, 10)
+
+
+	try:
+		while True:
+			opc.put_pixels(ledData)
+			ledData = ledData[-increment:] + ledData[:-increment]
+			time.sleep(sleepTime)
+	except:
+		print()
+	
+	

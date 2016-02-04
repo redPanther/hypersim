@@ -26,16 +26,23 @@ class OPCserver(Thread):
 
 					# recv data
 					data = self.request.recv(length)
-					if not data or not OPCserver.running or cmd != 0: break
+					if not data or not OPCserver.running: break
 				except socket.timeout:
 					break
 
 				# process data
-				if OPCserver.update_func is not None and len(data) >= 3:
-					led_data = []
-					for n in range(0,len(data),3):
-						led_data.append( (data[n], data[n+1], data[n+2]) )
-					OPCserver.update_func(led_data)
+				if cmd == 0:
+					if OPCserver.update_func is not None and len(data) >= 3:
+						led_data = []
+						for n in range(0,len(data),3):
+							led_data.append( (data[n], data[n+1], data[n+2]) )
+						OPCserver.update_func(led_data)
+						
+				elif cmd == 0xff:
+					print("sysex", data)
+				else:
+					print("unknown command", cmd, data)
+
 
 	# ======================================================
 

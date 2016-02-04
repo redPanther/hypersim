@@ -33,23 +33,25 @@ use the same LED-layout as the server.
 
 ### server: HyperSim
 ```
-usage: hypersim [-h] [-n]
-                [--hyperion <file> | --opc_xy <file> | --opc_yz <file> | --opc_xz <file>]
+usage: hypersim [-h] [-n] [-c | -r] --hyperion <file> | --opc_xy <file> |
+                --opc_yz <file> | --opc_xz <file>] [--led_size <pixel>]
 
 Simulator for hyperion.
 
 optional arguments:
-  -h, --help         show this help message and exit
-  -n, --num          show led IDs
-  --hyperion <file>  hyperion config
-  --opc_xy <file>    opc config xy components
-  --opc_yz <file>    opc config yz components
-  --opc_xz <file>    opc config xz components
+  -h, --help          show this help message and exit
+  -n, --num           show led IDs
+  -c, --circle        draw led as circle/oval
+  -r, --rect          draw led as rect (default)
+  --hyperion <file>   hyperion config
+  --opc_xy <file>     opc config xy components
+  --opc_yz <file>     opc config yz components
+  --opc_xz <file>     opc config xz components
+  --led_size <pixel>  pixel size of a single led (default: 15)
 ```
 
 Configuration file can be opened via file menu. LED numbers can be enabled on command line only (ATM).
 
-
-## Screenshot
+If all works fine you should see something similar like that:
 
 ![HyperSim matrix demo](doc/images/demo_matrix.png)
