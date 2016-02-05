@@ -18,19 +18,23 @@ class MainWindow(tk.Frame):
 		self.layout_file = None
 		self.draw_type = 'rect'
 		self.led_size = 15
-		
+		self.clut = [256*[0],256*[0],256*[0]]
+		self.gamma = 1.0
+		self.whitepoint = (1.0,1.0,1.0)
+
 		self.parseCmdArgs()
+		self.calculateCLUTs()
 		if self.layout_file is None:
 			self.resetVars()
 			self.initUI()
 		else:
 			self.loadConfig()
 
-		self.opcServer = OPCserver(self.updateLeds)
+		self.opcServer = OPCserver(self.updateLeds,self.setColorCorrection)
 		self.opcServer.start()
 
-		for idx in range(len(self.led_widgets)):
-			self.setLedColor(idx,100,200,100)
+		self.led_data = len(self.led_widgets) * [(100,200,100)]
+		self.updateLeds( self.led_data )
 
 	# ------------------------------------------------------
 	def resetVars(self):
@@ -235,9 +239,23 @@ class MainWindow(tk.Frame):
 
 	# ------------------------------------------------------
 	def updateLeds(self, led_data):
+		self.led_data = led_data
+		color = lambda i,c:self.clut[c][ led_data[i][c] ]
+
 		for idx in range(len(led_data)):
-			self.setLedColor(idx,led_data[idx][0],led_data[idx][1],led_data[idx][2])
+			if idx < len(self.led_widgets):
+				self.canvas.itemconfigure(self.led_widgets[idx], fill="#%02x%02x%02x" % (color(idx,0), color(idx,1), color(idx,2) ) )
+
 	# ------------------------------------------------------
-	def setLedColor(self,led_idx,r,g,b):
-		if led_idx < len(self.led_widgets):
-			self.canvas.itemconfigure(self.led_widgets[led_idx], fill="#%02x%02x%02x" % (r, g, b) )
+	def calculateCLUTs(self):
+		for c in range(3):
+			for i in range(256):
+				self.clut[c][i] = int(min(255,(i ** self.gamma) * self.whitepoint[c] ))
+
+	# ------------------------------------------------------
+	def setColorCorrection(self, gamma, whitepoint):
+		self.gamma = gamma
+		self.whitepoint = whitepoint
+		
+		self.calculateCLUTs()
+		self.updateLeds(self.led_data)

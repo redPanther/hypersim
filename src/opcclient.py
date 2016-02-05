@@ -203,8 +203,8 @@ class OPCclient(object):
 		self.send(header + msg)
 
 	# ----------------------------
-	def setGlobalColorCorrection(self, gamma, r, g, b):
-		data = json.dumps({'gamma': gamma, 'whitepoint': [r, g, b]})
+	def setGlobalColorCorrection(self, gamma=1.0, rgb=(1.0,1.0,1.0)):
+		data = json.dumps({'gamma': gamma, 'whitepoint': [rgb[0], rgb[1], rgb[2]]})
 		self.sysEx(1, 1, data.encode('utf-8'))
 
 	# ----------------------------
@@ -248,7 +248,7 @@ if __name__ == "__main__":
 		ledData[i] =(int(255*rgb[0]), int(255*rgb[1]), int(255*rgb[2]))
 
 	opc.put_pixels(ledData)
-	opc.setGlobalColorCorrection(2.5, 10, 10, 10)
+	opc.setGlobalColorCorrection(1.1, (1.0, 1.0, 1.10) )
 
 
 	try:
