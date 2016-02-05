@@ -691,15 +691,16 @@
 	{
 		"paths" : 
 		[
-			"effects"
+			"/opt/hyperion/effects"
 		]
 	},
 
 	"bootsequence" : 
 	{
-		"effect" : "Rainbow swirl fast",
+		"color"       : [100,200,90],
+		"effect"      : "Rainbow swirl fast",
 		"duration_ms" : 3000,
-		"priority"   : 500
+		"priority"    : 500
 	},
 
 	///  The configuration for the frame-grabber, contains the following items: 

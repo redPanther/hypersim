@@ -4,9 +4,7 @@ import json, re, time, argparse, signal, os
 import tkinter as tk
 
 import tkinter.messagebox as tkMessageBox
-import tkinter.simpledialog as tkSimpleDialog
 import tkinter.filedialog as tkFileDialog
-import tkinter.simpledialog as tkSimpleDialog
 
 from opcserver import *
 
@@ -21,13 +19,13 @@ class MainWindow(tk.Frame):
 		self.clut = [256*[0],256*[0],256*[0]]
 		self.gamma = 1.0
 		self.whitepoint = (1.0,1.0,1.0)
+		self.canvas = None
 
 		self.parseCmdArgs()
 		self.calculateCLUTs()
-		if self.layout_file is None:
-			self.resetVars()
-			self.initUI()
-		else:
+		self.resetVars()
+		self.initUI()
+		if self.layout_file is not None:
 			self.loadConfig()
 
 		self.opcServer = OPCserver(self.updateLeds,self.setColorCorrection)
@@ -37,11 +35,21 @@ class MainWindow(tk.Frame):
 		self.updateLeds( self.led_data )
 
 	# ------------------------------------------------------
+	def resetUI(self):
+		self.opcServer.standby(True)
+		try:
+			if self.canvas is not None:
+				self.canvas.destroy()
+			self.led_widgets = []
+			self.initCanvas()
+		finally:
+			self.opcServer.standby(False)
+
+	# ------------------------------------------------------
 	def resetVars(self):
 		self.win_width = 800
 		self.win_height = 600
 		self.led_rects = []
-		self.canvas = None
 		self.led_widgets = []
 		self.led_rects = []
 
@@ -49,13 +57,11 @@ class MainWindow(tk.Frame):
 	def loadConfig(self):
 		self.resetVars()
 		self.readConfig(self.layout_file ,self.layout_type)
-		if self.canvas is not None:
-			self.canvas.destroy()
-		self.initUI()
+		self.resetUI()
 
 	# ------------------------------------------------------
 	def menu_open_hyperion(self):
-		filename = tkFileDialog.askopenfilename()
+		filename = tkFileDialog.askopenfilename(filetypes=(("JSON files", "*.json"),("All files", "*.*")))
 		if filename:
 			self.layout_file = filename
 			self.layout_type = "hyperion"
@@ -63,7 +69,7 @@ class MainWindow(tk.Frame):
 
 	# ------------------------------------------------------
 	def menu_open_opc(self,layout_type):
-		filename = tkFileDialog.askopenfilename()
+		filename = tkFileDialog.askopenfilename(filetypes=(("JSON files", "*.json"),("All files", "*.*")))
 		if filename:
 			self.layout_file = filename
 			self.layout_type = layout_type
@@ -82,6 +88,26 @@ class MainWindow(tk.Frame):
 		self.menu_open_opc("opc_yz")
 
 	# ------------------------------------------------------
+	def menu_switch_led_type(self,event=None):
+		self.draw_type = 'circle' if self.draw_type == 'rect' else 'rect'
+		self.resetUI()
+
+	# ------------------------------------------------------
+	def menu_switch_led_ids(self,event=None):
+		self.show_numbers = not self.show_numbers
+		self.resetUI()
+
+	# ------------------------------------------------------
+	def menu_led_size_dec(self,event=None):
+		self.led_size = max(5,self.led_size-5)
+		self.loadConfig()
+
+	# ------------------------------------------------------
+	def menu_led_size_inc(self,event=None):
+		self.led_size = min(100,self.led_size+5)
+		self.loadConfig()
+
+	# ------------------------------------------------------
 	def initUI(self):
 		self.parent.title("HyperSim");
 		tk.Frame.__init__(self, self.parent)
@@ -95,13 +121,31 @@ class MainWindow(tk.Frame):
 		filemenu.add_command(label="Open OPC xz",   command=self.menu_open_opc_xz)
 		filemenu.add_command(label="Open OPC yz",   command=self.menu_open_opc_yz)
 		filemenu.add_separator()
-		filemenu.add_command(label="Quit",          command=self.on_close)
+		filemenu.add_command(label="Quit", accelerator="Ctrl+Q",  command=self.on_close)
+		
+		settingsmenu = tk.Menu(menubar, tearoff=0)
+		settingsmenu.add_command(label="switch led type",  accelerator="t", command=self.menu_switch_led_type)
+		settingsmenu.add_command(label="show/hide led IDs",  accelerator="n", command=self.menu_switch_led_ids)
+		settingsmenu.add_command(label="led size +5", accelerator="+", command=self.menu_led_size_inc)
+		settingsmenu.add_command(label="led size -5", accelerator="-", command=self.menu_led_size_dec)
+
 		menubar.add_cascade(label="File", menu=filemenu)
+		menubar.add_cascade(label="Settings", menu=settingsmenu)
 		self.parent.config(menu=menubar)
 
-		frameC = tk.Frame(master=self)
-		frameC.pack()
-		self.canvas = tk.Canvas(frameC, width=self.win_width, height=self.win_height)
+
+		self.bind_all("<Control-q>", self.on_close)
+		self.bind_all("t", self.menu_switch_led_type)
+		self.bind_all("n", self.menu_switch_led_ids)
+		self.bind_all("+", self.menu_led_size_inc)
+		self.bind_all("-", self.menu_led_size_dec)
+
+		self.frameC = tk.Frame(master=self)
+		self.frameC.pack()
+		self.initCanvas()
+
+	def initCanvas(self):
+		self.canvas = tk.Canvas(self.frameC, width=self.win_width, height=self.win_height)
 		self.canvas.pack()
 		self.canvas.create_rectangle(0, 0, self.win_width, self.win_height, fill="darkgray", outline="darkgray")
 
@@ -154,7 +198,7 @@ class MainWindow(tk.Frame):
 				break
 
 	# ------------------------------------------------------
-	def on_close(self):
+	def on_close(self,event=None):
 		self.opcServer.stop()
 		self.opcServer.join()
 		self.parent.destroy()
@@ -229,13 +273,16 @@ class MainWindow(tk.Frame):
 	def readConfig(self,layout_file, layout_type="hyperion"):
 			opc_map = {'opc_xy' : (0,1),'opc_xz' : (0,2),'opc_yz' : (1,2) }
 			
-			if layout_type == "hyperion":
-				self.readConfig_hyperion(layout_file)
-			elif layout_type in opc_map:
-				self.readConfig_opc(layout_file, opc_map[layout_type][0], opc_map[layout_type][1])
-			else:
-				print("unknown type of config file")
-				exit(1)
+			try:
+				if layout_type == "hyperion":
+					self.readConfig_hyperion(layout_file)
+				elif layout_type in opc_map:
+					self.readConfig_opc(layout_file, opc_map[layout_type][0], opc_map[layout_type][1])
+				else:
+					print("unknown type of config file")
+					exit(1)
+			except:
+				tkMessageBox.showerror("Open Config File", "Failed to open '%s' file \n'%s'" % (self.layout_type, self.layout_file))
 
 	# ------------------------------------------------------
 	def updateLeds(self, led_data):

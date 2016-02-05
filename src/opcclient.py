@@ -226,7 +226,6 @@ if __name__ == "__main__":
 	import colorsys
 	opc = OPCclient()
 	
-	opc.setFirmwareConfig(noDither=False,noInterp=True,manualLED=True,ledOnOff=False)
 		
 	ledCount = 64
 	ledData = ledCount * [(0,0,0)]
@@ -247,9 +246,8 @@ if __name__ == "__main__":
 		rgb = colorsys.hsv_to_rgb(hue, saturation, brightness)
 		ledData[i] =(int(255*rgb[0]), int(255*rgb[1]), int(255*rgb[2]))
 
-	opc.put_pixels(ledData)
-	opc.setGlobalColorCorrection(1.1, (1.0, 1.0, 1.10) )
-
+	#opc.setFirmwareConfig(noDither=False,noInterp=True,manualLED=True,ledOnOff=False)
+	#opc.setGlobalColorCorrection(1.1, (1.0, 1.0, 1.0) )
 
 	try:
 		while True:
