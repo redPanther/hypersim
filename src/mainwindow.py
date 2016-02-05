@@ -8,6 +8,20 @@ import tkinter.filedialog as tkFileDialog
 
 from opcserver import *
 
+
+class StatusBar(tk.Frame):   
+	def __init__(self, parent):
+		tk.Frame.__init__(self, parent)
+		
+		self.text=tk.StringVar()
+		self.label=tk.Label(self, bd=1, relief=tk.SUNKEN, anchor=tk.W, textvariable=self.text, padx=2, pady=2)
+		self.text.set('')
+		self.label.pack(fill=tk.X, side=tk.LEFT,expand=1, padx=2, pady=2)
+		self.pack(fill=tk.X, side=tk.LEFT,expand=1, padx=1, pady=1)
+
+	def setText(self,text=''):
+		self.text.set(text)
+
 class MainWindow(tk.Frame):
 
 	# ------------------------------------------------------
@@ -58,6 +72,7 @@ class MainWindow(tk.Frame):
 		self.resetVars()
 		self.readConfig(self.layout_file ,self.layout_type)
 		self.resetUI()
+		self.statusbar.setText("[%s] %s" % (self.layout_type, self.layout_file) )
 
 	# ------------------------------------------------------
 	def menu_open_hyperion(self):
@@ -142,6 +157,8 @@ class MainWindow(tk.Frame):
 
 		self.frameC = tk.Frame(master=self)
 		self.frameC.pack()
+		self.statusbar = StatusBar(self)
+		
 		self.initCanvas()
 
 	def initCanvas(self):

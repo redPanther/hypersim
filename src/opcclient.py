@@ -227,7 +227,7 @@ if __name__ == "__main__":
 	opc = OPCclient()
 	
 		
-	ledCount = 64
+	ledCount = 128
 	ledData = ledCount * [(0,0,0)]
 	saturation = 1.0
 	brightness = 1.0

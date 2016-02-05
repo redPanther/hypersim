@@ -50,8 +50,16 @@ optional arguments:
   --led_size <pixel>  pixel size of a single led (default: 15)
 ```
 
-Configuration file can be opened via file menu. LED numbers can be enabled on command line only (ATM).
+Configuration file can be opened via file menu.
 
 If all works fine you should see something similar like that:
 
-![HyperSim matrix demo](doc/images/demo_matrix.png)
+![Hyperion AmbiLight](doc/images/snapshot_hyperion.config.png)
+
+![Hyperion LED-wall](doc/images/snapshot_hyperion.config.matrix.png)
+
+![OPC circle](doc/images/snapshot_circle.png)
+
+![OPC strip](doc/images/snapshot_strip.png)
+
+![OPC triangle](doc/images/snapshot_triangle.png)
