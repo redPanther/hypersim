@@ -80,10 +80,11 @@ class OPCserver(Thread):
 		Thread.__init__(self)
 		OPCserver.update_func = upd_func
 		OPCserver.color_func = col_func
-		self.server = socketserver.TCPServer((HOST, PORT), OPCserver.OPCHandler, False)
+		self.server = socketserver.TCPServer((HOST, int(PORT)), OPCserver.OPCHandler, False)
 		self.server.allow_reuse_address = True
 		self.server.socket.settimeout(3)
 		self.server.server_bind()
+		print("opc server bind on %s %i" %(HOST,PORT) )
 
 	# ------------------------------------------------------
 	def __del__(self):

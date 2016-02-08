@@ -34,7 +34,8 @@ class MainWindow(tk.Frame):
 		self.gamma = 1.0
 		self.whitepoint = (1.0,1.0,1.0)
 		self.canvas = None
-
+		self.OPCport = 7890
+		
 		self.parseCmdArgs()
 		self.calculateCLUTs()
 		self.resetVars()
@@ -42,7 +43,7 @@ class MainWindow(tk.Frame):
 		if self.layout_file is not None:
 			self.loadConfig()
 
-		self.opcServer = OPCserver(self.updateLeds,self.setColorCorrection)
+		self.opcServer = OPCserver(self.updateLeds,self.setColorCorrection,PORT=self.OPCport)
 		self.opcServer.start()
 
 		self.led_data = len(self.led_widgets) * [(100,200,100)]
@@ -191,9 +192,11 @@ class MainWindow(tk.Frame):
 		group.add_argument('--opc_yz'  , default=None, metavar="<file>", help='opc config yz components')
 		group.add_argument('--opc_xz'  , default=None, metavar="<file>", help='opc config xz components')
 		parser.add_argument('--led_size', default=15, metavar="<pixel>", type=int, help='pixel size of a single led (default: 15)')
+		parser.add_argument('--port', default=7890, metavar="<port>", type=int, help='set port of OPC-server (default: 7890)')
 
 		args = parser.parse_args()
 		
+		self.OPCport = args.port
 		self.show_numbers = args.show_numbers
 		self.draw_type = 'rect' if args.draw_type is None else args.draw_type
 		self.led_size = args.led_size
