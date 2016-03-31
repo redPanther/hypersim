@@ -50,6 +50,7 @@ optional arguments:
   --opc_xz <file>     opc config xz components
   --led_size <pixel>  pixel size of a single led (default: 15)
   --port <port>       set port of OPC-server (default: 7890)
+  -w, --wide          set to 16:9 format
 ```
 
 Configuration file can be opened via file menu.

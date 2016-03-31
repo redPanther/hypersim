@@ -80,6 +80,7 @@ class MainWindow(tk.Frame):
 	def menu_open_hyperion(self):
 		filename = tkFileDialog.askopenfilename(filetypes=(("JSON files", "*.json"),("All files", "*.*")))
 		if filename:
+			self.wideScreen  = True
 			self.layout_file = filename
 			self.layout_type = "hyperion"
 			self.loadConfig()
