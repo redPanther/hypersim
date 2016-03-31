@@ -41,11 +41,12 @@ class MainWindow(tk.Frame):
 		self.calculateCLUTs()
 		self.resetVars()
 		self.initUI()
-		if self.layout_file is not None:
-			self.loadConfig()
 
 		self.opcServer = OPCserver(self.updateLeds,self.setColorCorrection,PORT=self.OPCport)
 		self.opcServer.start()
+
+		if self.layout_file is not None:
+			self.loadConfig()
 
 		self.led_data = len(self.led_widgets) * [(100,200,100)]
 		self.updateLeds( self.led_data )
