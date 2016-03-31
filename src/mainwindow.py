@@ -35,7 +35,8 @@ class MainWindow(tk.Frame):
 		self.whitepoint = (1.0,1.0,1.0)
 		self.canvas = None
 		self.OPCport = 7890
-		
+		self.wideScreen = False
+
 		self.parseCmdArgs()
 		self.calculateCLUTs()
 		self.resetVars()
@@ -62,7 +63,7 @@ class MainWindow(tk.Frame):
 
 	# ------------------------------------------------------
 	def resetVars(self):
-		self.win_width = 800
+		self.win_width = 1067 if self.wideScreen else 800
 		self.win_height = 600
 		self.led_rects = []
 		self.led_widgets = []
@@ -124,6 +125,24 @@ class MainWindow(tk.Frame):
 		self.loadConfig()
 
 	# ------------------------------------------------------
+	def menu_screen_4to3(self,event=None):
+		self.wideScreen = False
+		if self.layout_file is not None:
+			self.loadConfig()
+		else:
+			self.resetVars()
+			self.resetUI()
+
+	# ------------------------------------------------------
+	def menu_screen_16to9(self,event=None):
+		self.wideScreen = True
+		if self.layout_file is not None:
+			self.loadConfig()
+		else:
+			self.resetVars()
+			self.resetUI()
+
+	# ------------------------------------------------------
 	def initUI(self):
 		self.parent.title("HyperSim");
 		tk.Frame.__init__(self, self.parent)
@@ -143,7 +162,8 @@ class MainWindow(tk.Frame):
 		settingsmenu.add_command(label="switch led type",  accelerator="t", command=self.menu_switch_led_type)
 		settingsmenu.add_command(label="show/hide led IDs",  accelerator="n", command=self.menu_switch_led_ids)
 		settingsmenu.add_command(label="led size +5", accelerator="+", command=self.menu_led_size_inc)
-		settingsmenu.add_command(label="led size -5", accelerator="-", command=self.menu_led_size_dec)
+		settingsmenu.add_command(label="screen 4:3", accelerator="4", command=self.menu_screen_4to3)
+		settingsmenu.add_command(label="screen 16:9", accelerator="9", command=self.menu_screen_16to9)
 
 		menubar.add_cascade(label="File", menu=filemenu)
 		menubar.add_cascade(label="Settings", menu=settingsmenu)
@@ -155,6 +175,8 @@ class MainWindow(tk.Frame):
 		self.bind_all("n", self.menu_switch_led_ids)
 		self.bind_all("+", self.menu_led_size_inc)
 		self.bind_all("-", self.menu_led_size_dec)
+		self.bind_all("4", self.menu_screen_4to3)
+		self.bind_all("9", self.menu_screen_16to9)
 
 		self.frameC = tk.Frame(master=self)
 		self.frameC.pack()
@@ -193,11 +215,13 @@ class MainWindow(tk.Frame):
 		group.add_argument('--opc_xz'  , default=None, metavar="<file>", help='opc config xz components')
 		parser.add_argument('--led_size', default=15, metavar="<pixel>", type=int, help='pixel size of a single led (default: 15)')
 		parser.add_argument('--port', default=7890, metavar="<port>", type=int, help='set port of OPC-server (default: 7890)')
+		parser.add_argument('-w','--wide', dest='wideScreen', default=False, action='store_true', help='set to 16:9 format')
 
 		args = parser.parse_args()
 		
 		self.OPCport = args.port
 		self.show_numbers = args.show_numbers
+		self.wideScreen = args.wideScreen
 		self.draw_type = 'rect' if args.draw_type is None else args.draw_type
 		self.led_size = args.led_size
 		
