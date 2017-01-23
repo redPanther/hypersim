@@ -192,13 +192,16 @@ class MainWindow(tk.Frame):
 		self.canvas.create_rectangle(0, 0, self.win_width, self.win_height, fill="darkgray", outline="darkgray")
 
 		for idx, r in enumerate(self.led_rects):
-			if self.draw_type == 'circle':
-				self.led_widgets.append(self.canvas.create_oval(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
+			if r is None:
+				self.led_widgets.append(None)
 			else:
-				self.led_widgets.append(self.canvas.create_rectangle(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
+				if self.draw_type == 'circle':
+					self.led_widgets.append(self.canvas.create_oval(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
+				else:
+					self.led_widgets.append(self.canvas.create_rectangle(r[0], r[1], r[2], r[3], fill="black", outline="darkgray"))
 
-			if self.show_numbers:
-				self.canvas.create_text( int((r[0]+r[2])/2), int((r[1]+r[3])/2), anchor=tk.W, text=str(idx))
+				if self.show_numbers:
+					self.canvas.create_text( int((r[0]+r[2])/2), int((r[1]+r[3])/2), anchor=tk.W, text=str(idx))
 
 
 
@@ -270,21 +273,31 @@ class MainWindow(tk.Frame):
 	def readConfig_opc(self,layout_file,a_val_idx,b_val_idx):
 		a_values = []
 		b_values = []
+		a_values_tmp = []
+		b_values_tmp = []
 		with open(layout_file) as data_file:
 			opc_cfg = json.load(data_file)
 
 			for d in opc_cfg:
-				a_values.append(d['point'][a_val_idx])
-				b_values.append(d['point'][b_val_idx])
+				if len(d['point']) > 0:
+					a_values.append(d['point'][a_val_idx])
+					b_values.append(d['point'][b_val_idx])
+					a_values_tmp.append(d['point'][a_val_idx])
+					b_values_tmp.append(d['point'][b_val_idx])
+				else:
+					a_values.append(None)
+					b_values.append(None)
+
+			#tkMessageBox.showerror("Open Config File", "here")
 
 			if len(a_values) != len(b_values) or len(a_values) == 0:
 				print("error while loading layout file")
 				return
 
-			a_values_max = max(a_values)
-			a_values_min = min(a_values)
-			b_values_max = max(b_values)
-			b_values_min = min(b_values)
+			a_values_max = max(a_values_tmp)
+			a_values_min = min(a_values_tmp)
+			b_values_max = max(b_values_tmp)
+			b_values_min = min(b_values_tmp)
 			
 			if a_values_max - a_values_min == 0:
 				a_values_max = a_values_min + 1
@@ -308,12 +321,15 @@ class MainWindow(tk.Frame):
 			canvas_gap = led_margin*2 + self.led_size
 			
 			for idx in range(len(a_values)):
-				self.led_rects.append([
-					int(norm_a(a_values[idx]) * (self.win_width -canvas_gap)+ led_margin),
-					int(norm_a(b_values[idx]) * (self.win_height-canvas_gap)+ led_margin),
-					int(norm_a(a_values[idx]) * (self.win_width -canvas_gap)+ self.led_size+led_margin),
-					int(norm_a(b_values[idx]) * (self.win_height-canvas_gap)+ self.led_size+led_margin)
-				])
+				if a_values[idx] is None:
+					self.led_rects.append(None)
+				else:
+					self.led_rects.append([
+						int(norm_a(a_values[idx]) * (self.win_width -canvas_gap)+ led_margin),
+						int(norm_a(b_values[idx]) * (self.win_height-canvas_gap)+ led_margin),
+						int(norm_a(a_values[idx]) * (self.win_width -canvas_gap)+ self.led_size+led_margin),
+						int(norm_a(b_values[idx]) * (self.win_height-canvas_gap)+ self.led_size+led_margin)
+					])
 
 	# ------------------------------------------------------
 	def readConfig(self,layout_file, layout_type="hyperion"):
@@ -327,8 +343,8 @@ class MainWindow(tk.Frame):
 				else:
 					print("unknown type of config file")
 					exit(1)
-			except:
-				tkMessageBox.showerror("Open Config File", "Failed to open '%s' file \n'%s'" % (self.layout_type, self.layout_file))
+			except Exception as e:
+				tkMessageBox.showerror("Open Config File", "Failed to open '%s' file \n'%s'\n%s" % (self.layout_type, self.layout_file, e))
 
 	# ------------------------------------------------------
 	def updateLeds(self, led_data):
@@ -337,7 +353,8 @@ class MainWindow(tk.Frame):
 
 		for idx in range(len(led_data)):
 			if idx < len(self.led_widgets):
-				self.canvas.itemconfigure(self.led_widgets[idx], fill="#%02x%02x%02x" % (color(idx,0), color(idx,1), color(idx,2) ) )
+				if self.led_widgets[idx] is not None:
+					self.canvas.itemconfigure(self.led_widgets[idx], fill="#%02x%02x%02x" % (color(idx,0), color(idx,1), color(idx,2) ) )
 
 	# ------------------------------------------------------
 	def calculateCLUTs(self):
