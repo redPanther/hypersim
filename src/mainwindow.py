@@ -164,6 +164,7 @@ class MainWindow(tk.Frame):
 		settingsmenu.add_command(label="switch led type",  accelerator="t", command=self.menu_switch_led_type)
 		settingsmenu.add_command(label="show/hide led IDs",  accelerator="n", command=self.menu_switch_led_ids)
 		settingsmenu.add_command(label="led size +5", accelerator="+", command=self.menu_led_size_inc)
+		settingsmenu.add_command(label="led size -5", accelerator="-", command=self.menu_led_size_dec)
 		settingsmenu.add_command(label="screen 4:3", accelerator="4", command=self.menu_screen_4to3)
 		settingsmenu.add_command(label="screen 16:9", accelerator="9", command=self.menu_screen_16to9)
 
@@ -261,13 +262,35 @@ class MainWindow(tk.Frame):
 				data += line.split('//')[0]
 			hyperion_cfg = json.loads(data)
 
-			for led in hyperion_cfg['leds']:
-				self.led_rects.append([
-					int(led['hscan']['minimum'] * self.win_width),
-					int(led['vscan']['minimum'] * self.win_height),
-					int(led['hscan']['maximum'] * self.win_width),
-					int(led['vscan']['maximum'] * self.win_height)
-				])
+			try:
+				#print ("Test for hyperion records")
+				test_hyperion = hyperion_cfg['leds'][0]['hscan']
+
+			except Exception as e:
+				#print ("Test for hyperion.ng records")
+				try:
+					test_hyperion_ng = hyperion_cfg[0]['h']
+
+				except Exception as e:
+				    	raise Exception ("Not a hyperion nor hyperion-ng file")
+				else:
+					#print ("hyperion.ng records found")
+					for led in hyperion_cfg:
+						self.led_rects.append([
+							int(led['h']['min'] * self.win_width),
+							int(led['v']['min'] * self.win_height),
+							int(led['h']['max'] * self.win_width),
+							int(led['v']['max'] * self.win_height)
+						])
+			else:
+				#print ("hyperion records found")
+				for led in hyperion_cfg['leds']:
+					self.led_rects.append([
+						int(led['hscan']['minimum'] * self.win_width),
+						int(led['vscan']['minimum'] * self.win_height),
+						int(led['hscan']['maximum'] * self.win_width),
+						int(led['vscan']['maximum'] * self.win_height)
+						])
 
 	# ------------------------------------------------------
 	def readConfig_opc(self,layout_file,a_val_idx,b_val_idx):
