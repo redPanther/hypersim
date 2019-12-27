@@ -27,20 +27,28 @@ hyperion.config.json:
 },
 ```
 ### client: Hyperion-NG
-**Setup a LED-device via the Web-UI:**
+Setup a LED-device via the Web-UI:
+```
 Configuration -> LED Hardware -> LED Controller -> Controller type: "fadecandy" 
+```
 
-**Specific Settings:**
+Specific Settings:
+```
 Target IP   : 127.0.0.1
 Port        : 7890
+```
 
 #### Create an Hyperion-NG LED-Layout file
 
-**Configure the LED-Layout via the Web-UI:**
+Configure the LED-Layout via the Web-UI:
+```
 Configuration -> LED Hardware -> LED Layout -> Classic Layout or Matrix Layout
+```
 
-**Get the LED-layout definition via:**
+Get the LED-layout definition via:
+```
 Generated/Current LED Configuration -> Update Preview
+```
 
 Copy the content of the text field and save it as a hyperion-ng LED-layout file to be used by the HyperSim server.
 
