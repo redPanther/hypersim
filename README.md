@@ -1,7 +1,7 @@
 # HyperSim
 LED-Simulator for hyperion and open pixel control.
 
-This is a python/TK app that can load a [hyperion](https://github.com/tvdzwan/hyperion) config file
+This is a python/TK app that can load [hyperion](https://github.com/tvdzwan/hyperion) and [hyperion.ng](https://github.com/hyperion-project/hyperion.ng) config files
 or [open-pixel-control/OPC](http://openpixelcontrol.org/) layout file and visualize the LED configuration.
 In addition it opens a OPC server where you can feed the virtual LEDs with real color from hyperion/opc client.
 
@@ -9,8 +9,8 @@ In addition it opens a OPC server where you can feed the virtual LEDs with real 
 - python 3
 - Tkinter support (windows: it comes with standard py3 install. Linux: there are packages)
 - source of OPC messages like OLA, Hyperion, OPC-Clients
-- a json config file with your led layout (e.g. hyperion config, OPC layouts)
-- Hyperion: Ensure you have the latest hyperiond
+- a json config file with your led layout (e.g. hyperion config, hyperion-ng LED layout, OPC layouts)
+- Hyperion/Hyperion-NG: Ensure you have the latest hyperiond
 
 ## Usage
 
@@ -26,6 +26,32 @@ hyperion.config.json:
   "output"     : "127.0.0.1"
 },
 ```
+### client: Hyperion-NG
+Setup a LED-device via the Web-UI:
+```
+Configuration -> LED Hardware -> LED Controller -> Controller type: "fadecandy" 
+```
+
+Specific Settings:
+```
+Target IP   : 127.0.0.1
+Port        : 7890
+```
+
+#### Create an Hyperion-NG LED-Layout file
+
+Configure the LED-Layout via the Web-UI:
+```
+Configuration -> LED Hardware -> LED Layout -> Classic Layout or Matrix Layout
+```
+
+Get the LED-layout definition via:
+```
+Generated/Current LED Configuration -> Update Preview
+```
+
+Copy the content of the text field and save it as a hyperion-ng LED-layout file to be used by the HyperSim server.
+
 ### client: generic OPC
 
 configure your client to your HyperSim IP-address and port 7890
