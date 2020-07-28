@@ -31,7 +31,7 @@ class MainWindow(tk.Frame):
 		self.draw_type = 'rect'
 		self.led_size = 15
 		self.clut = [256*[0],256*[0],256*[0]]
-		self.gamma = 1.0
+		self.gamma = 1.3
 		self.whitepoint = (1.0,1.0,1.0)
 		self.canvas = None
 		self.OPCport = 7890
@@ -269,7 +269,7 @@ class MainWindow(tk.Frame):
 			except Exception as e:
 				#print ("Test for hyperion.ng records")
 				try:
-					test_hyperion_ng = hyperion_cfg[0]['h']
+					test_hyperion_ng = hyperion_cfg[0]['hmax']
 
 				except Exception as e:
 				    	raise Exception ("Not a hyperion nor hyperion-ng file")
@@ -277,10 +277,10 @@ class MainWindow(tk.Frame):
 					#print ("hyperion.ng records found")
 					for led in hyperion_cfg:
 						self.led_rects.append([
-							int(led['h']['min'] * self.win_width),
-							int(led['v']['min'] * self.win_height),
-							int(led['h']['max'] * self.win_width),
-							int(led['v']['max'] * self.win_height)
+							int(led['hmin'] * self.win_width),
+							int(led['vmin'] * self.win_height),
+							int(led['hmax'] * self.win_width),
+							int(led['vmax'] * self.win_height)
 						])
 			else:
 				#print ("hyperion records found")
